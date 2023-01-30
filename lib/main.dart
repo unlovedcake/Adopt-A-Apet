@@ -37,7 +37,7 @@ class MyApp extends StatelessWidget {
             child: Image.asset('asset/images/app-logo.png'),
           ),
           done: Done(
-            const HomeScreen(),
+            const SignInScreen(),
             animationDuration: const Duration(seconds: 2),
             curve: Curves.easeInOut,
           )),

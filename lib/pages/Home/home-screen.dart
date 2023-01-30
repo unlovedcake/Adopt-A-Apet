@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:adopt_a_pet/pages/Factorial/factorial-screen.dart';
 import 'package:adopt_a_pet/utilities/Extenstion-String.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/rendering.dart';
@@ -26,7 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final ScrollController _controller = ScrollController();
   var isLoading = ValueNotifier<bool>(false);
-  var dataLenght = ValueNotifier<int>(1420);
+  var dataLenght = ValueNotifier<int>(10);
 
   TextEditingController searchController = TextEditingController();
 
@@ -150,7 +151,6 @@ class _HomeScreenState extends State<HomeScreen> {
               leading: Icon(Icons.home),
               title: const Text('Data Management'),
               onTap: () {
-                Navigator.of(context).pop();
                 Navigator.of(context).push(MaterialPageRoute(
                   builder: (BuildContext context) => HomeScreen(),
                 ));
@@ -160,7 +160,9 @@ class _HomeScreenState extends State<HomeScreen> {
               leading: Icon(Icons.settings),
               title: const Text('Factorial'),
               onTap: () {
-                Navigator.of(context).pop();
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (BuildContext context) => FactorialScreen(),
+                ));
               },
             ),
             ListTile(
