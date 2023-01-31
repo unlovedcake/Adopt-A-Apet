@@ -29,6 +29,7 @@ class InputFieldsNameEmail extends StatelessWidget {
   Widget build(BuildContext context) {
     return NeumorphicTextFieldContainer(
       child: TextFormField(
+        textInputAction: TextInputAction.next,
         onChanged: onChanged,
         validator: validator,
         controller: controller,

@@ -36,8 +36,6 @@ extension ExtensionSigninController on SignUpScreenState {
 
       userModel?.docID = user?.uid ?? "";
 
-      userModel?.token = token ?? "";
-
       await user?.updateDisplayName(userModel?.firstName ?? "");
       await user?.updatePhotoURL(userModel?.imageUrl ?? "");
 
@@ -61,6 +59,7 @@ extension ExtensionSigninController on SignUpScreenState {
             gender: userModel?.gender ?? "",
             birthDate: userModel?.birthDate ?? "",
             userType: userModel?.userType ?? "",
+            token: token ?? "",
             imageUrl:
                 "https://images.goodsmile.info/cgm/images/product/20210419/11099/83717/large/50dabf69c05e421243096235f67f7e64.jpg");
 

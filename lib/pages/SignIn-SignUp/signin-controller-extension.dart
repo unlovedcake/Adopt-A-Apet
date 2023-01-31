@@ -34,6 +34,8 @@ extension ExtensionSigninController on SignInScreenState {
           .get();
       final List<DocumentSnapshot> document = result.docs;
 
+      DocumentSnapshot documentSnapshot = document[0];
+
       await _auth
           .signInWithEmailAndPassword(
               email: emailController.text, password: passwordController.text)
@@ -41,30 +43,19 @@ extension ExtensionSigninController on SignInScreenState {
         if (document.isNotEmpty) {
           dismissLoadingView();
           gotoHomeScreen();
-          // String? token = await FirebaseMessaging.instance.getToken();
-          //
-          // DocumentSnapshot documentSnapshot = document[0];
-          // UserModel userData = UserModel.fromMap(documentSnapshot);
-          //
-          // // userLoggedIn = UserModel(
-          // //     docID: userData.docID ?? "",
-          // //     firstName: userData.firstName,
-          // //     lastName: userData.lastName ?? "",
-          // //     address: userData.address ?? "",
-          // //     phoneNumber: userData.phoneNumber ?? "",
-          // //     email: userData.email,
-          // //     gender: userData.gender ?? "",
-          // //     birthDate: userData.birthDate ?? "",
-          // //     userType: userData.userType ?? "",
-          // //     imageUrl: userData.imageUrl);
-          //
-          // await FirebaseFirestore.instance
-          //     .collection("table-user")
-          //     .doc(userData.docID ?? "")
-          //     .update({'token': token}).then((_) {
-          //   dismissLoadingView();
-          //   gotoHomeScreen();
-          // });
+
+          userLoggedIn = UserModel(
+              docID: documentSnapshot.id,
+              firstName: documentSnapshot.get('firstName'),
+              lastName: documentSnapshot.get('lastName'),
+              address: documentSnapshot.get('address'),
+              phoneNumber: documentSnapshot.get('phoneNumber'),
+              email: documentSnapshot.get('email'),
+              gender: documentSnapshot.get('gender'),
+              birthDate: documentSnapshot.get('birthDate'),
+              userType: documentSnapshot.get('userType'),
+              token: documentSnapshot.get('token'),
+              imageUrl: documentSnapshot.get('imageUrl'));
         }
       });
     } on FirebaseAuthException catch (error) {
@@ -102,6 +93,8 @@ extension ExtensionSigninController on SignInScreenState {
 
   Future<String?> signInwithGoogle() async {
     final GoogleSignIn _googleSignIn = GoogleSignIn();
+    String? token = await FirebaseMessaging.instance.getToken();
+
     try {
       final GoogleSignInAccount? googleSignInAccount = await _googleSignIn.signIn();
       final GoogleSignInAuthentication googleSignInAuthentication =
@@ -111,7 +104,7 @@ extension ExtensionSigninController on SignInScreenState {
         idToken: googleSignInAuthentication.idToken,
       );
       await _auth.signInWithCredential(credential).then((value) async {
-        print("1");
+        startShowLoadingView();
         final QuerySnapshot result = await FirebaseFirestore.instance
             .collection('table-user')
             .where('email', isEqualTo: googleSignInAccount.email.toString())
@@ -119,27 +112,31 @@ extension ExtensionSigninController on SignInScreenState {
         final List<DocumentSnapshot> document = result.docs;
 
         if (document.isEmpty) {
-          userLoggedIn = UserModel(
-              docID: googleSignInAccount.id.toString(),
-              firstName: googleSignInAccount.displayName.toString(),
-              lastName: "",
-              address: "",
-              phoneNumber: "",
-              email: googleSignInAccount.email.toString(),
-              gender: "",
-              birthDate: "",
-              userType: "user",
-              imageUrl: googleSignInAccount.photoUrl.toString());
           await FirebaseFirestore.instance
               .collection("table-user")
               .add(userLoggedIn?.toMap() ?? {})
               .then((uid) async {
+            dismissLoadingView();
             gotoHomeScreen();
           });
         } else {
           print("2");
+          dismissLoadingView();
           gotoHomeScreen();
         }
+
+        userLoggedIn = UserModel(
+            docID: googleSignInAccount.id.toString(),
+            firstName: googleSignInAccount.displayName.toString(),
+            lastName: "",
+            address: "",
+            phoneNumber: "",
+            email: googleSignInAccount.email.toString(),
+            gender: "",
+            birthDate: "",
+            userType: "user",
+            token: token,
+            imageUrl: googleSignInAccount.photoUrl.toString());
       });
     } on FirebaseAuthException catch (e) {
       print(e.message);
@@ -149,16 +146,48 @@ extension ExtensionSigninController on SignInScreenState {
 
   Future signInWithFacebook() async {
     try {
+      String? token = await FirebaseMessaging.instance.getToken();
       final LoginResult result = await FacebookAuth.instance.login();
       final AuthCredential facebookCredential =
           FacebookAuthProvider.credential(result.accessToken!.token);
-      final userCredential = await _auth.signInWithCredential(facebookCredential).then((val) async {
+      await _auth.signInWithCredential(facebookCredential).then((val) async {
         print("FACEBOOK SIGN IN");
+        startShowLoadingView();
         final userData = await FacebookAuth.instance.getUserData();
 
         print(userData['email'].toString());
-        print("FACEBOOK SIGN IN");
-        gotoHomeScreen();
+
+        final QuerySnapshot result = await FirebaseFirestore.instance
+            .collection('table-user')
+            .where('email', isEqualTo: userData['email'].toString())
+            .get();
+        final List<DocumentSnapshot> document = result.docs;
+
+        if (document.isEmpty) {
+          await FirebaseFirestore.instance
+              .collection("table-user")
+              .add(userLoggedIn?.toMap() ?? {})
+              .then((uid) async {
+            dismissLoadingView();
+            gotoHomeScreen();
+          });
+        } else {
+          dismissLoadingView();
+          gotoHomeScreen();
+        }
+
+        userLoggedIn = UserModel(
+            docID: userData['id'].toString(),
+            firstName: userData['name'].toString(),
+            lastName: "",
+            address: "",
+            phoneNumber: "",
+            email: userData['email'].toString(),
+            gender: "",
+            birthDate: "",
+            userType: "user",
+            token: token,
+            imageUrl: userData['picture']['data']['url'].toString());
       });
 
       // final LoginResult result = await FacebookAuth.instance.login();

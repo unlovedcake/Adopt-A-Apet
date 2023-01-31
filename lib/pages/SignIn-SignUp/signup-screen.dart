@@ -105,7 +105,7 @@ class SignUpScreenState extends State<SignUpScreen> {
       ),
       RectangularButton(
           text: 'Sign Up',
-          press: () {
+          press: () async {
             if (nameController.text.trim().isEmpty) {
               displayErrorMessage("Name is required.");
             } else if (emailController.text.trim().isEmpty) {

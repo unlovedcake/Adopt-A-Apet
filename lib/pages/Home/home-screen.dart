@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:adopt_a_pet/pages/Factorial/factorial-screen.dart';
 import 'package:adopt_a_pet/utilities/Extenstion-String.dart';
+import 'package:adopt_a_pet/widgets/cache-network-image.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -11,6 +12,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
+import '../../All-Constants/global_variable.dart';
 import '../../router/Navigate-Route.dart';
 import '../../widgets/RichText-HightTermText.dart';
 
@@ -84,6 +86,34 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void sendPushMessage(String token, String title, String body) async {
+    try {
+      print("oks");
+      await http.post(
+        Uri.parse('https://fcm.googleapis.com/fcm/send'),
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization':
+              'key=AAAAATnXoTE:APA91bGIfAlscZmvum3ekOemsEf432MJHESLlKt5RIlTWCgxwC_SuDN6qOWNaMQXejRlE81Nv7MRMgZi9Wf-uO0EkyT-1hJSZyA2V7nlOTeNCXsXJ-XVaE3FiEQDStRSJpJW1LIJT68I',
+        },
+        body: jsonEncode(
+          <String, dynamic>{
+            'notification': <String, dynamic>{'body': body, 'title': title},
+            'priority': 'high',
+            'data': <String, dynamic>{
+              'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+              'id': '1',
+              'status': 'done'
+            },
+            "to": token,
+          },
+        ),
+      );
+    } catch (e) {
+      print("error push notification");
+    }
+  }
+
   @override
   void initState() {
     _fetchData();
@@ -114,6 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
+
     return Scaffold(
       appBar: AppBar(
         // flexibleSpace: Container(
@@ -128,7 +159,7 @@ class _HomeScreenState extends State<HomeScreen> {
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
         centerTitle: true,
-        title: Text(
+        title: const Text(
           'Data Management',
           style: TextStyle(color: Colors.black),
         ),
@@ -137,15 +168,26 @@ class _HomeScreenState extends State<HomeScreen> {
       drawer: Drawer(
         child: ListView(
           children: <Widget>[
-            const DrawerHeader(
-              decoration: BoxDecoration(
+            DrawerHeader(
+              decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [Colors.white, Colors.blue],
                 ),
               ),
-              child: Text('Drawer Header'),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 100.0,
+                    height: 100.0,
+                    child: circleAvatar(userLoggedIn?.imageUrl.toString() ?? ""),
+                  ),
+                  Text(userLoggedIn?.firstName.toString() ?? ""),
+                ],
+              ),
             ),
             ListTile(
               leading: Icon(Icons.home),
@@ -163,6 +205,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.of(context).push(MaterialPageRoute(
                   builder: (BuildContext context) => FactorialScreen(),
                 ));
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.settings),
+              title: const Text('Send Notification'),
+              onTap: () async {
+                sendPushMessage(
+                    userLoggedIn!.token.toString(),
+                    "From : ${userLoggedIn!.firstName.toString()}",
+                    "Hello ${userLoggedIn!.firstName.toString()}");
               },
             ),
             ListTile(
